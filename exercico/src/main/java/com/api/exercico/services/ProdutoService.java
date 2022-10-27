@@ -5,13 +5,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.api.exercico.DTO.ProdutoDTO;
 import com.api.exercico.domain.Produto;
 import com.api.exercico.repositories.ProdutoRepository;
-import com.api.exercico.services.exceptions.EntityNotFoundException;
+import com.api.exercico.services.exceptions.ResourceNotFoundException;
 
 @Service
 public class ProdutoService {
@@ -30,7 +33,37 @@ public class ProdutoService {
 	public ProdutoDTO findById(Long id) {
 		
 		Optional<Produto> obj = repository.findById(id);
-		Produto entity = obj.orElseThrow(()-> new EntityNotFoundException("Entity Not Fund"));
+		Produto entity = obj.orElseThrow(()-> new ResourceNotFoundException("Entity Not Fund"));
 		return new ProdutoDTO(entity);
 	}
+	
+	private Produto findByDescricao(ProdutoDTO dto) {
+		
+		Produto obj = repository.findByDescricao(dto.getDescricao());
+		
+		if(obj != null) {
+			
+		return obj;
+		}
+		return null;
+	}
+
+
+	public ProdutoDTO insert(ProdutoDTO dto) {
+		
+		if(findByDescricao(dto)!= null) {
+			
+			throw new ResourceNotFoundException("Descricao ja cadastrado");
+		}
+		Produto entity  = new Produto();
+		entity.setAtivo(dto.isAtivo());
+		entity.setDescricao(dto.getDescricao());
+		entity.setPreco_unitario(dto.getPreco_unitario());
+		
+		entity = repository.save(entity);
+		return new ProdutoDTO(entity);
+	}
+	
+	
+	
 }
