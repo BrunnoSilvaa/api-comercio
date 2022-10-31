@@ -4,7 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +66,34 @@ public class ProdutoService {
 		
 		entity = repository.save(entity);
 		return new ProdutoDTO(entity);
+	}
+
+
+	public ProdutoDTO update(Long id , ProdutoDTO dto) {
+		try {
+			Produto entity = repository.getOne(id);
+			entity.setDescricao(dto.getDescricao());
+			entity.setAtivo(dto.isAtivo());
+			entity.setPreco_unitario(dto.getPreco_unitario());
+			repository.save(entity);
+			return new ProdutoDTO(entity);
+		} catch (EntityNotFoundException e) {
+			
+			 throw new ResourceNotFoundException("Entity Not Found");
+		}
+
+	}
+
+
+	public void delete(Long id) {
+		
+		try {
+			repository.deleteById(id);
+		} catch (EmptyResultDataAccessException e) {
+			
+			throw new ResourceNotFoundException("Entity Not Found");
+		}
+		
 	}
 	
 	
